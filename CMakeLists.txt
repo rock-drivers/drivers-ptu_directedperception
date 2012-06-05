@@ -2,5 +2,5 @@
 # executed from 'project/build' with 'cmake ../'.
 cmake_minimum_required(VERSION 2.6)
 include($ENV{ROCK_CMAKE_MACROS}/Rock.cmake)
-rock_init(ptu_flir 0.1)
+rock_init(ptu_directedperception 0.1)
 rock_standard_layout()
