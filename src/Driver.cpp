@@ -14,7 +14,7 @@ using namespace ptu;
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-using namespace std;
+#include <base/logging.h>
 
 #include <boost/current_function.hpp>
 using namespace boost;
@@ -22,15 +22,14 @@ using namespace boost;
 //==============================================================================
 // Static members initialization
 //==============================================================================
-const int ptu::Driver::DEFAULT_BAUDRATE    = 19200;
+const int ptu::Driver::DEFAULT_BAUDRATE    = 9600;
 const int ptu::Driver::MAX_PACKET_SIZE     = 8192;
 
 //==============================================================================
 // Implementation
 //==============================================================================
-bool Driver::write(const string& msg, const int& timeout) {
-    string currName = string(BOOST_CURRENT_FUNCTION);
-
+bool Driver::write(const std::string& msg, const int& timeout) {
+    LOG_DEBUG_S << "write called with param: \"" << msg << "\"";
     try {
         if (timeout == -1) {
             writePacket(reinterpret_cast<const uint8_t*>(msg.c_str()), msg.size());
@@ -38,10 +37,11 @@ bool Driver::write(const string& msg, const int& timeout) {
             writePacket(reinterpret_cast<const uint8_t*>(msg.c_str()), msg.size(), timeout);
         }
     } catch (iodrivers_base::TimeoutError e) {
-        cerr << currName + ": timeout error" << endl;
+        std::cerr << "write: timeout error" <<std::endl;
+//TODO
         return false;
     } catch (...) {
-        cerr << currName + ": unknown error" << endl;
+        std::cerr << "write: unknown error" <<std::endl;
         return false;
     }
 
@@ -49,26 +49,28 @@ bool Driver::write(const string& msg, const int& timeout) {
 }
 
 bool Driver::readAns(std::string& ans, int timeout) {
-    string currName = string(BOOST_CURRENT_FUNCTION);
 
     uint8_t buffer[MAX_PACKET_SIZE];
     size_t bufferSize = MAX_PACKET_SIZE;
     size_t packetSize;
 
     try {
-        if (timeout < 0) {
+        if (-1 == timeout) {
+	    LOG_DEBUG_S << "readAns called readPacket without timeout";
             packetSize = readPacket(buffer, bufferSize);
         } else {
+	    LOG_DEBUG_S << "readAns called readPacket WITH timeout: " << timeout << ".";
             packetSize = readPacket(buffer, bufferSize, timeout);
         }
     } catch (iodrivers_base::TimeoutError e) {
-        cerr << currName + ": timeout error" << endl;
+        std::cerr << "readAns: timeout error" <<std::endl;
         return false;
     } catch (...) {
-        cerr << currName + ": unknown error" << endl;
+        std::cerr << "readAns : unknown error" <<std::endl;
         return false;
     }
-
+	
+    LOG_DEBUG_S << "readAns, device response string: " << ans;
     ans.assign(reinterpret_cast<const char*>(buffer), packetSize);
     return true;
 }
@@ -89,31 +91,31 @@ bool Driver::validateAns(const std::string& ans, std::string& error) {
 }
 
 int Driver::extractPacket(const uint8_t* buffer, size_t size) const {
-    string currName = string(BOOST_CURRENT_FUNCTION);
+    
 
     // possible beginnings of a packet
-    string begs = Cmd::SUCC_BEG + Cmd::ERR_BEG;
+    std::string begs = Cmd::SUCC_BEG + Cmd::ERR_BEG;
 
     // the current packet
-    string packet(reinterpret_cast<const char*>(buffer), size);
+    std::string packet(reinterpret_cast<const char*>(buffer), size);
 
     // find the beginning and the end of a packet
     size_t beg = packet.find_first_of(begs);
     size_t end = packet.find_first_of(Cmd::DELIM_CR);
 
-    //cout << beg << " " << end << endl;
+    //cout << beg << " " << end <<std::endl;
 
     // see the documentation of extractPacket for further details
-    if (beg == string::npos && end == string::npos) {
+    if (beg == std::string::npos && end == std::string::npos) {
         return (-size);
-    } else if (beg != 0 && beg != string::npos) {
+    } else if (beg != 0 && beg != std::string::npos) {
         return (-beg);
-    } else if (beg == 0 && end == string::npos) {
+    } else if (beg == 0 && end == std::string::npos) {
         return 0;
-    } else if (beg == 0 && end != string::npos) {
+    } else if (beg == 0 && end != std::string::npos) {
         return end + 1;
     } else {
-        throw runtime_error(currName + ": invalid branch taken");
+        throw std::runtime_error("extractPacket: invalid branch taken");
     }
 
     return 0;
@@ -130,77 +132,70 @@ Driver::~Driver() {
     }
 }
 
-bool Driver::open(const std::string& uri) {
-//    bool ret = Driver::openSerial(uri, DEFAULT_BAUDRATE);
-    Driver::openTCP(uri, 8080);
-
-//    if (ret == false) {
-//        return false;
-//    }
-
-    return true;
-}
-
 bool Driver::close() {
     iodrivers_base::Driver::close();
     return true;
 }
 
+//TODO check if offset parameter is really usefull here, since PO and PP seem to 
+//     have always the same answer.
 bool Driver::getPos(const Axis& axis, const bool& offset, int& pos) {
-    string currName = string(BOOST_CURRENT_FUNCTION);
 
     bool ret = write(Cmd::getPos(axis, offset));
     if (!ret) return false;
 
-    string ans;
+    std::string ans;
     // TODO fix the timeout
     ret = readAns(ans, 10000);
     if (!ret) return false;
 
-    string error;
+    std::string error;
     ret = validateAns(ans, error);
     if (!ret) {
-        cerr << currName + ": " << error << endl;
+        std::cerr << "getPos: " << error << std::endl;
+	LOG_ERROR_S << "getPos: " << error;
         return false;
     }
 
-    string toFind("position is ");
+    std::string toFind("* ");
     size_t found = ans.find(toFind);
 
-    if (found == string::npos) {
-        cerr << currName + ": invalid answer format" << endl;
+    if (found == std::string::npos) {
+        std::cerr << "getPos: invalid answer format" << std::endl;
+	LOG_ERROR_S << "getPos: invalid answer format";
         return false;
     }
 
-    stringstream ss;
+    std::stringstream ss;
     ss << ans.substr(found + toFind.size());
     ss >> pos;
 
     return true;
 }
 
-bool Driver::setPos(const int& val, const Axis& axis, const bool& offset) {
-    string currName = string(BOOST_CURRENT_FUNCTION);
+bool Driver::setPos(const Axis& axis, const bool& offset, const int& val) {
 
     bool ret = write(Cmd::setPos(val, axis, offset));
     if (!ret) return false;
 
-    string ans;
+    std::string ans;
     // TODO fix the timeout
     ret = readAns(ans, 10000);
     if (!ret) return false;
 
-    string error;
+    std::string error;
     ret = validateAns(ans, error);
     if (!ret) {
-        cerr << currName + ": " << error << endl;
+        std::cerr << "setPos: " << error << std::endl;
+	LOG_ERROR_S << "setPos: " << error;
         return false;
     }
 
     if (ans == Cmd::SUCC_CMD) {
         return true;
     } else {
-        cerr << currName + ": failed to set position" << endl;
+        std::cerr << "setPos: failed to set position" << std::endl;
+	LOG_ERROR_S << "setPos: failed to set position";
         return false;
     }
 

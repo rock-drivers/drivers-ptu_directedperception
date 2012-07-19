@@ -27,7 +27,21 @@ private:
     static const int MAX_PACKET_SIZE;   //!< The maximum packet size.
 
     int _baudrate;  //!< The current baudrate.
+
+
+protected:
+    /**
+     * Find a packet into the currently accumulated data.
+     */
+    int extractPacket(const uint8_t* buffer, size_t size) const;
+
+
 public:
+    
+    // Constructors and destructors.
+    Driver();
+    ~Driver();
+
     /**
      * Sends a message to the device.
      * @param msg the message to be sent
@@ -51,23 +65,6 @@ public:
      */
     bool validateAns(const std::string& ans, std::string& error);
 
-protected:
-    /**
-     * Find a packet into the currently accumulated data.
-     */
-    int extractPacket(const uint8_t* buffer, size_t size) const;
-
-public:
-    // Constructors and destructors.
-    Driver();
-    ~Driver();
-
-    /**
-     * Open the device via an URI.
-     * @param uri the URI where the device is located
-     */
-    bool open(const std::string& uri);
-
     /**
      * Closes the device.
      */
@@ -88,7 +85,7 @@ public:
      * @param offset if true, the relative value is used
      * @return true if successful
      */
-    bool setPos(const int& val, const Axis& axis, const bool& offset = false);
+    bool setPos(const Axis& axis, const bool& offset = false, const int& val = 0);
 };
 
 } // end of namespace ptu
