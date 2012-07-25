@@ -15,6 +15,7 @@ using namespace ptu;
 #include <sstream>
 #include <stdexcept>
 #include <base/logging.h>
+#include <cmath>
 
 #include <boost/current_function.hpp>
 using namespace boost;
@@ -24,10 +25,31 @@ using namespace boost;
 //==============================================================================
 const int ptu::Driver::DEFAULT_BAUDRATE    = 9600;
 const int ptu::Driver::MAX_PACKET_SIZE     = 8192;
+const float ptu::Driver::DEGREEPERTICK     = 0.051432698;
 
 //==============================================================================
 // Implementation
 //==============================================================================
+
+
+bool Driver::openSerial(std::string const& port, int baudrate){
+	bool retVal = false;
+        retVal = iodrivers_base::Driver::openSerial(port, baudrate);
+	
+	//set response mode of the device to short (easier parsing) tarse mode.
+	write("FT ");
+	//check if set was done.
+	std::string ans="",err="";
+	readAns(ans);
+	if(!validateAns(ans,err)){
+		LOG_ERROR_S << "openSerial: error while changing echo mode: " << err;
+		return false;
+	}
+	
+	return retVal;
+}
+
+
 bool Driver::write(const std::string& msg, const int& timeout) {
     LOG_DEBUG_S << "write called with param: \"" << msg << "\"";
     try {
@@ -38,10 +60,11 @@ bool Driver::write(const std::string& msg, const int& timeout) {
         }
     } catch (iodrivers_base::TimeoutError e) {
         std::cerr << "write: timeout error" <<std::endl;
-//TODO
+        LOG_ERROR_S << "write: timeout error";
         return false;
     } catch (...) {
-        std::cerr << "write: unknown error" <<std::endl;
+        std::cerr << "write: unknown error" << std::endl;
+	LOG_ERROR_S << "write: unknown error";
         return false;
     }
 
@@ -173,7 +196,33 @@ bool Driver::getPos(const Axis& axis, const bool& offset, int& pos) {
     return true;
 }
 
-bool Driver::setPos(const Axis& axis, const bool& offset, const int& val) {
+
+//get the position as degree.
+float Driver::getPosDeg(const Axis& axis, const bool& offset){
+    float retVal = 0;
+    int tickPos = 0;
+    getPos(axis,offset,tickPos);
+    retVal = (float)tickPos * DEGREEPERTICK;
+    return retVal;
+}
+
+
+//set position as degree value.
+bool Driver::setPosDeg(const Axis &axis, const bool &offset, const float &val, 
+                       const bool &awaitCompletion){
+    
+    //calculate tick value
+    int ticks = round(val / DEGREEPERTICK);
+
+    //setPos in ticks.
+    setPos(axis, offset, ticks, awaitCompletion);
+    
+    return true;
+}
+
+
+bool Driver::setPos(const Axis& axis, const bool& offset, const int& val, 
+                    const bool& awaitCompletion) {
 
     bool ret = write(Cmd::setPos(val, axis, offset));
     if (!ret) return false;
@@ -189,6 +238,22 @@ bool Driver::setPos(const Axis& axis, const bool& offset, const int& val) {
         std::cerr << "setPos: " << error << std::endl;
 	LOG_ERROR_S << "setPos: " << error;
         return false;
+    }
+
+    if (awaitCompletion){
+	
+	//set awaitCompletion mode      
+	LOG_DEBUG_S << "setPos: with await completion.";
+	write(Cmd::awaitPosCmdCompletion());
+	
+	//check if command was set successfully.
+	ret = readAns(ans, 10000);
+	std::string err = "";
+	if(!ret or !validateAns(ans, err)){
+		LOG_ERROR_S << "failed to set await completion mode: " << err;
+		//log error but do not answer with fail code.
+	}
+	
     }
 
     if (ans == Cmd::SUCC_CMD) {

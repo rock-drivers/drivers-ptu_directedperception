@@ -25,6 +25,7 @@ class Driver : public iodrivers_base::Driver {
 private:
     static const int DEFAULT_BAUDRATE;  //!< The default baudrate that the ptu starts with.
     static const int MAX_PACKET_SIZE;   //!< The maximum packet size.
+    static const float DEGREEPERTICK; //Degrees per tick. (same for TILT AND PAN) //TODO maybe calculated??
 
     int _baudrate;  //!< The current baudrate.
 
@@ -43,6 +44,11 @@ public:
     ~Driver();
 
     /**
+     *@inharitate // what is this supposed to mean?!
+    */
+    bool openSerial(std::string const& port, int baudrate);
+
+    /**
      * Sends a message to the device.
      * @param msg the message to be sent
      * @param timeout timeout in ms
@@ -56,7 +62,8 @@ public:
      * @param timeout timeout in ms
      * @return the size of the data contained in \c buffer
      */
-    bool readAns(std::string& ans, int timeout = -1);
+    //TODO fix timeout!
+    bool readAns(std::string& ans, int timeout = 10000);
 
     /**
      * Tells if an answer is correct or not.
@@ -79,13 +86,36 @@ public:
     bool getPos(const Axis& axis, const bool& offset, int& pos);
 
     /**
+     * Get the position as degree value instead of ticks as given by getPos.
+     * @param axis Select the axis to be read out. (PAN or TILT)
+     * @param offset if true the offset command will be used.
+     * @return the position of selected axis as degree value. (0 is front center).
+     *  
+     */
+    float getPosDeg(const Axis &axis, const bool &offset);
+
+
+    /**
+      * Set the Position for selected axis to given value in degree.
+      * @param axis Specify the axis which should be set (PAN, TILT).
+      * @param offset Select if the position should be set as an offset from current position
+      *               or if false it will be set as absolute value (while 0 is front center).
+      * @param awaitCompletion Set if movement should be completed before processing next command.
+      * @return Returns bool value. true if success, false otherwise. 
+      */
+    bool setPosDeg(const Axis &axis, const bool &offset, const float &val, const bool &awaitCompletion = false);
+
+    /**
      * Set current pan-tilt position.
      * @param val the value to which to set the position
      * @param axis the axis to be used
      * @param offset if true, the relative value is used
+     * @param awaitCompletion force the command to be completed 
+     *        before next command will be processed.
      * @return true if successful
      */
-    bool setPos(const Axis& axis, const bool& offset = false, const int& val = 0);
+    bool setPos(const Axis& axis, const bool& offset = false, const int& val = 0, 
+                const bool& awaitCompletion = false);
 };
 
 } // end of namespace ptu

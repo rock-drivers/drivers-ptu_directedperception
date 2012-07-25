@@ -20,46 +20,79 @@ int main(int argc, char* argv[]) {
     drv.openSerial("/dev/ttyS1", 9600);
 
     bool ret = false;
-    //ret = drv.setPos(276, TILT, true);
-    std::cout << "Bestimmung der aktuellen Position: " << std::endl;
- 
-    std::cout << "Antwort mit drv.getPos: " << std::endl;
-    int answer = 0;
-    //ask driver function for actual position
-    ret = drv.getPos(ptu::PAN, false, answer);
-    std::cout << "Antwort PAN: " << ret << ": " << answer << std::endl;
-    ret = drv.getPos(ptu::TILT, false, answer);
-    std::cout << "Antwort TILT: " << ret << ": " << answer << std::endl << std::endl;
+    int int_answer = 0;
+    float float_answer = 0;
 
- 
-    std::cout << "Antwort mit write + read: " <<  std::endl;
-    std::string test = "PP ";
-    drv.write(test, -1);
-    std::string answ = "";
-    drv.readAns(answ,500);
-    std::cout << "Antwort auf PP (Pan): " << answ << "" << std::endl;
-    test = "TP ";
-    drv.write(test, -1);
-    answ = "";
-    drv.readAns(answ,500);
-    std::cout << "Antwort auf TP (Tilt): " << answ << "" << std::endl << std::endl;
+    //Set positions in ticks
+    std::cout << "Setting absolute position -800(P), 300(T) with drv.setPos and awaitCompletion" << std::endl  << std::endl;
+    drv.setPos(ptu::PAN, false, -800, true);
+    drv.setPos(ptu::TILT, false, 300, true);
 
+    //Read positions
+    std::cout << "Reading positions with drv.getPos and drv.getPosDeg:" << std::endl;
+    float_answer = drv.getPosDeg(ptu::PAN, false);
+    std::cout << "Answer PAN: " << float_answer << "° (";
+    ret = drv.getPos(ptu::PAN, false, int_answer);
+    std::cout << int_answer << " ticks)" << std::endl;
+    float_answer = drv.getPosDeg(ptu::TILT, false);
+    std::cout << "Answer TILT: " << float_answer << "° (";
+    ret = drv.getPos(ptu::TILT, false, int_answer);
+    std::cout << int_answer << " ticks)" << std::endl << std::endl;
 
-    //go to Position 0 with manual write method.
-    //test = "PP0 "; 
-    //drv.write(test, -1);
-    //drv.readAns(answ,500);
-    //std::cout << "Antwort von PTU: " << answ << std::endl;
-    //tell PTU to finish current task before doing the next one. (manual write).
-    //test = "A ";
-    //drv.write(test,-1);
-    //test = "PP-1000 ";
-    //sleep(5000);
-    //drv.write(test, -1);
+    //Set positions in degrees
+    std::cout << "Setting degree position 30°(P), -20°(T) with drv.setPosDeg and awaitCompletion" << std::endl  << std::endl;
+    drv.setPosDeg(ptu::PAN, false, 30, true);
+    drv.setPosDeg(ptu::TILT, false, -20, true);
     
-    //user driver function to go to end position
-    drv.setPos(ptu::PAN, false, -800);
-    drv.setPos(ptu::TILT, false, 300);
+    //Read positions
+    std::cout << "Reading positions with drv.getPos and drv.getPosDeg:" << std::endl;
+    float_answer = drv.getPosDeg(ptu::PAN, false);
+    std::cout << "Answer PAN: " << float_answer << "° (";
+    ret = drv.getPos(ptu::PAN, false, int_answer);
+    std::cout << int_answer << " ticks)" << std::endl;
+    float_answer = drv.getPosDeg(ptu::TILT, false);
+    std::cout << "Answer TILT: " << float_answer << "° (";
+    ret = drv.getPos(ptu::TILT, false, int_answer);
+    std::cout << int_answer << " ticks)" << std::endl << std::endl;
+
+    //Set relative positions in degrees
+    std::cout << "Setting relative degree position +20°(P), -10°(T) with drv.setPosDeg and awaitCompletion" << std::endl      << std::endl;
+    drv.setPosDeg(ptu::PAN, true, 20, true);
+    drv.setPosDeg(ptu::TILT, true, -10, true);
+     
+    //Read positions
+    std::cout << "Reading positions with drv.getPos and drv.getPosDeg:" << std::endl;
+    float_answer = drv.getPosDeg(ptu::PAN, false);
+    std::cout << "Answer PAN: " << float_answer << "° (";
+    ret = drv.getPos(ptu::PAN, false, int_answer);
+    std::cout << int_answer << " ticks)" << std::endl;
+    float_answer = drv.getPosDeg(ptu::TILT, false);
+    std::cout << "Answer TILT: " << float_answer << "° (";
+    ret = drv.getPos(ptu::TILT, false, int_answer);
+    std::cout << int_answer << " ticks)" << std::endl << std::endl;
+
+    //Set relative positions in degrees
+    std::cout << "Resetting through relative degree position -50°(P), +30°(T) with drv.setPosDeg and awaitCompletion" <<     std::endl      << std::endl;
+    drv.setPosDeg(ptu::PAN, true, -50, true);
+    drv.setPosDeg(ptu::TILT, true, 30, true);
+
+    //Read positions
+    std::cout << "Reading positions with drv.getPos and drv.getPosDeg:" << std::endl;
+    float_answer = drv.getPosDeg(ptu::PAN, false);
+    std::cout << "Answer PAN: " << float_answer << "° (";
+    ret = drv.getPos(ptu::PAN, false, int_answer);
+    std::cout << int_answer << " ticks)" << std::endl;
+    float_answer = drv.getPosDeg(ptu::TILT, false);
+    std::cout << "Answer TILT: " << float_answer << "° (";
+    ret = drv.getPos(ptu::TILT, false, int_answer);
+    std::cout << int_answer << " ticks)" << std::endl << std::endl;
+
+    //Reset positions    
+    std::cout << std::endl << "Setting position back to 0(P), 0(T) with drv.setPos" << std::endl  << std::endl;
+    drv.setPos(ptu::PAN, false, 0);
+    drv.setPos(ptu::TILT, false, 0);
+
+
 
     drv.close();
     return 0;
