@@ -206,6 +206,10 @@ float Driver::getPosDeg(const Axis& axis, const bool& offset){
     return retVal;
 }
 
+float Driver::getPosRad(const Axis& axis, const bool& offset){
+    return getPosDeg(axis, offset) / 180.0 * M_PI;
+}
+
 
 //set position as degree value.
 bool Driver::setPosDeg(const Axis &axis, const bool &offset, const float &val, 
@@ -218,6 +222,11 @@ bool Driver::setPosDeg(const Axis &axis, const bool &offset, const float &val,
     setPos(axis, offset, ticks, awaitCompletion);
     
     return true;
+}
+bool Driver::setPosRad(const Axis &axis, const bool &offset, const float &val, 
+                       const bool &awaitCompletion){
+    return setPosDeg(axis, offset, val / M_PI * 180.0, awaitCompletion);
+
 }
 
 

@@ -93,6 +93,9 @@ public:
      *  
      */
     float getPosDeg(const Axis &axis, const bool &offset);
+    
+    /** Get the position in radian. @see getPos */
+    float getPosRad(const Axis &axis, const bool &offset);
 
 
     /**
@@ -105,6 +108,8 @@ public:
       */
     bool setPosDeg(const Axis &axis, const bool &offset, const float &val, const bool &awaitCompletion = false);
 
+    /** Set the position in radian. @see setPos */
+    bool setPosRad(const Axis &axis, const bool &offset, const float &val, const bool &awaitCompletion = false);
     /**
      * Set current pan-tilt position.
      * @param val the value to which to set the position
