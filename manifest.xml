@@ -3,9 +3,7 @@
   Rock driver for DirectedPerception Pan-Tilt Unit.
   </description>
   <author>Remus Claudiu Dumitru/r.dumitru@jacobs-university.de</author>
-  <license></license>
-  <url>http://</url>
-  <logo>http://</logo>
+  <license>LGPLv2 or later</license>
   <!--
    To add any dependencies use the depend tag
   <depend package="dummy-dependency-0" />
