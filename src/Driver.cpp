@@ -346,3 +346,8 @@ bool Driver::setSpeedRad(const Axis& axis, const float& speed) {
 
     return setSpeedDeg(axis, speed * 180.0 / M_PI);
 }
+
+bool Driver::setHalt() {
+
+    return write(Cmd::haltPosCmd(true,true));
+}

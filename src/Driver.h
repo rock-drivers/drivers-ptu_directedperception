@@ -155,6 +155,11 @@ public:
      * Set desired \p speed for an \p axis in radian/second.
      */
     bool setSpeedRad(const Axis& axis, const float& speed);
+
+    /**
+     * Stops motion.
+     */
+    bool setHalt();
 };
     
 template<typename T>
