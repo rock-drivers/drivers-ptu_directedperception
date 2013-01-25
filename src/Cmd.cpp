@@ -79,7 +79,7 @@ string Cmd::setPos(const int& val, const Axis& axis, const bool& offset)
     return msg.str();
 }
 
-string Cmd::getResoultion(const Axis& axis) {
+string Cmd::getResolution(const Axis& axis) {
     string currName = string(BOOST_CURRENT_FUNCTION);
 
     stringstream msg;

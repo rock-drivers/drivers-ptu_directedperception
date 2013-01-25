@@ -92,7 +92,7 @@ public:
      * @param axis the axis to be used
      * @return the properly formated message
      */
-    static std::string getResoultion(const Axis& axis);
+    static std::string getResolution(const Axis& axis);
 
     /**
      * Get minimum position possible.
