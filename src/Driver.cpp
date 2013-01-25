@@ -25,6 +25,7 @@ using namespace boost;
 const int ptu::Driver::DEFAULT_BAUDRATE    = 9600;
 const int ptu::Driver::MAX_PACKET_SIZE     = 8192;
 const float ptu::Driver::DEGREEPERTICK     = 0.051432698;
+const float ptu::Driver::DEGREEPERSECARC = 0.0002778;
 
 //==============================================================================
 // Implementation
@@ -44,6 +45,32 @@ bool Driver::openSerial(std::string const& port, int baudrate){
 		LOG_ERROR_S << "openSerial: error while changing echo mode: " << err;
 		return false;
 	}
+
+        // get the pan resolution
+        write(Cmd::getResolution(PAN));
+        if ( !getAns(ans) ) {
+            LOG_ERROR_S << "error while reading the pan resolution";
+            return false;
+        }
+        if(!getQueryResult(ans, mPanResolutionDeg)) {
+            LOG_ERROR_S << "cannot parse ans for pan resolution";
+            return false; 
+        }
+        mPanResolutionDeg *= DEGREEPERSECARC;
+        LOG_INFO_S << "Pan resolution is " << mPanResolutionDeg << " deg/position";
+
+        // get the tilt resolution
+        write(Cmd::getResolution(TILT));
+        if( !getAns(ans) ) {
+            LOG_ERROR_S << "error while reading the tilt resolution";
+            return false;
+        }
+        if(!getQueryResult(ans, mTiltResolutionDeg)) {
+            LOG_ERROR_S << "cannot parse " << ans << " for tilt resolution";
+            return false; 
+        }
+        mTiltResolutionDeg *= DEGREEPERSECARC;
+        LOG_INFO_S << "Tilt resolution is " << mTiltResolutionDeg << " deg/position";
 	
 	return retVal;
 }
@@ -160,8 +187,11 @@ int Driver::extractPacket(const uint8_t* buffer, size_t size) const {
 
 Driver::Driver() :
         iodrivers_base::Driver(MAX_PACKET_SIZE),
+        mPanResolutionDeg(1.0),
+        mTiltResolutionDeg(1.0),
         mTimeout(10000),
         _baudrate(DEFAULT_BAUDRATE)
+
 {}
 
 Driver::~Driver() {

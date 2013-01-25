@@ -27,6 +27,10 @@ private:
     static const int DEFAULT_BAUDRATE;  //!< The default baudrate that the ptu starts with.
     static const int MAX_PACKET_SIZE;   //!< The maximum packet size.
     static const float DEGREEPERTICK; //Degrees per tick. (same for TILT AND PAN) //TODO maybe calculated??
+    static const float DEGREEPERSECARC;
+
+    float mPanResolutionDeg;
+    float mTiltResolutionDeg;
     int mTimeout; //<! Timeout in milliseconds(?).
 
     int _baudrate;  //!< The current baudrate.
