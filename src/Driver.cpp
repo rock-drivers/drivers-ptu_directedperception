@@ -320,3 +320,29 @@ bool Driver::setPos(const Axis& axis, const bool& offset, const int& val,
 
     return true;
 }
+
+
+bool Driver::setSpeed(const Axis& axis, const int& speed) {
+    
+    if (!write(Cmd::setDesiredSpeed(speed,axis)))
+        return false;
+    
+    std::string ans;
+    return getAns(ans);
+}
+
+bool Driver::setSpeedDeg(const Axis& axis, const float& speed) {
+    
+    int speed_pos_s;
+    if ( axis == TILT )
+        speed_pos_s = speed * mTiltResolutionDeg;
+    else if (axis == PAN )
+        speed_pos_s = speed * mPanResolutionDeg;
+
+    return setSpeed(axis,speed_pos_s);
+}
+
+bool Driver::setSpeedRad(const Axis& axis, const float& speed) {
+
+    return setSpeedDeg(axis, speed * 180.0 / M_PI);
+}
