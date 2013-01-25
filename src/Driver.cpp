@@ -335,9 +335,9 @@ bool Driver::setSpeedDeg(const Axis& axis, const float& speed) {
     
     int speed_pos_s;
     if ( axis == TILT )
-        speed_pos_s = speed * mTiltResolutionDeg;
+        speed_pos_s = speed / mTiltResolutionDeg;
     else if (axis == PAN )
-        speed_pos_s = speed * mPanResolutionDeg;
+        speed_pos_s = speed / mPanResolutionDeg;
 
     return setSpeed(axis,speed_pos_s);
 }
