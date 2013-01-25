@@ -198,6 +198,12 @@ string Cmd::setAutoScanAtPowerUp(const bool& val) {
     return msg.str();
 }
 
+string Cmd::stopAutoScan() {
+    stringstream msg;
+    msg << DELIM_SP;
+    return msg.str();
+}
+
 string Cmd::preset(const int& index, const PresetAction& action) {
     string currName = string(BOOST_CURRENT_FUNCTION);
 

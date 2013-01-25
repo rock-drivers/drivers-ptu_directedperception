@@ -191,6 +191,11 @@ public:
     static std::string setAutoScanAtPowerUp(const bool& val);
 
     /**
+     * To stop the auto scan. 
+     */
+    static std::string stopAutoScan();
+
+    /**
      * Sets, goes to or clear a preset position command.
      * @param index the index of the preset to act upon
      * @param action the action to perform on preset
