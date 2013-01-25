@@ -11,6 +11,7 @@
 //==============================================================================
 // Includes
 //==============================================================================
+#include <base/logging.h>
 #include "iodrivers_base/Driver.hpp"
 //#include "Driver.hpp"    // include I am using for eclipse
 
@@ -73,6 +74,19 @@ public:
     bool validateAns(const std::string& ans, std::string& error);
 
     /**
+     * Get an answer. Combines readAns and validateAns.
+     */
+    bool getAns(std::string& ans);
+
+    /**
+     * Parse the query \p result form the string \p ans.
+     * The query result will be like '* <result><CR>'.
+     * @return false if something went wrong.
+     */
+    template<typename T>
+    bool getQueryResult(const std::string& ans, T& result);
+
+    /**
      * Closes the device.
      */
     bool close();
@@ -122,6 +136,24 @@ public:
     bool setPos(const Axis& axis, const bool& offset = false, const int& val = 0, 
                 const bool& awaitCompletion = false);
 };
+    
+template<typename T>
+bool Driver::getQueryResult(const std::string& ans, T& result) {
+
+    std::string toFind("* ");
+    size_t found = ans.find(toFind);
+
+    if (found == std::string::npos) {
+        LOG_ERROR_S << "getPos: invalid answer format";
+        return false;
+    }
+
+    std::stringstream ss;
+    ss << ans.substr(found + toFind.size());
+    ss >> result;
+
+    return true;
+}
 
 } // end of namespace ptu
 

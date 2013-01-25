@@ -14,7 +14,6 @@ using namespace ptu;
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-#include <base/logging.h>
 #include <cmath>
 
 #include <boost/current_function.hpp>
@@ -86,10 +85,10 @@ bool Driver::readAns(std::string& ans, int timeout) {
             packetSize = readPacket(buffer, bufferSize, timeout);
         }
     } catch (iodrivers_base::TimeoutError e) {
-        std::cerr << "readAns: timeout error" <<std::endl;
+        LOG_ERROR_S << "readAns: timeout error" <<std::endl;
         return false;
     } catch (...) {
-        std::cerr << "readAns : unknown error" <<std::endl;
+        LOG_ERROR_S<< "readAns : unknown error" <<std::endl;
         return false;
     }
 	
@@ -112,6 +111,21 @@ bool Driver::validateAns(const std::string& ans, std::string& error) {
 
     return true;
 }
+
+bool Driver::getAns(std::string& ans) {
+
+    std::string error;
+    
+    if (!readAns(ans, mTimeout)) return false;
+
+    if (!validateAns(ans, error) ) {
+	LOG_ERROR_S << "validation error /" << error << "/ while reading " << ans;
+        return false;
+    }
+
+    return true;
+}
+    
 
 int Driver::extractPacket(const uint8_t* buffer, size_t size) const {
     
