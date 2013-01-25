@@ -160,6 +160,7 @@ int Driver::extractPacket(const uint8_t* buffer, size_t size) const {
 
 Driver::Driver() :
         iodrivers_base::Driver(MAX_PACKET_SIZE),
+        mTimeout(10000),
         _baudrate(DEFAULT_BAUDRATE)
 {}
 
@@ -183,7 +184,7 @@ bool Driver::getPos(const Axis& axis, const bool& offset, int& pos) {
 
     std::string ans;
     // TODO fix the timeout
-    ret = readAns(ans, 10000);
+    ret = readAns(ans, mTimeout);
     if (!ret) return false;
 
     std::string error;
@@ -252,7 +253,7 @@ bool Driver::setPos(const Axis& axis, const bool& offset, const int& val,
 
     std::string ans;
     // TODO fix the timeout
-    ret = readAns(ans, 10000);
+    ret = readAns(ans, mTimeout);
     if (!ret) return false;
 
     std::string error;
@@ -270,7 +271,7 @@ bool Driver::setPos(const Axis& axis, const bool& offset, const int& val,
 	write(Cmd::awaitPosCmdCompletion());
 	
 	//check if command was set successfully.
-	ret = readAns(ans, 10000);
+	ret = readAns(ans, mTimeout);
 	std::string err = "";
 	if(!ret or !validateAns(ans, err)){
 		LOG_ERROR_S << "failed to set await completion mode: " << err;
