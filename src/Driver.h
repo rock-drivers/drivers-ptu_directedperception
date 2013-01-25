@@ -31,6 +31,12 @@ private:
 
     float mPanResolutionDeg;
     float mTiltResolutionDeg;
+    
+    float mMinPanRad;
+    float mMaxPanRad;
+    float mMinTiltRad;
+    float mMaxTiltRad;
+
     int mTimeout; //<! Timeout in milliseconds(?).
 
     int _baudrate;  //!< The current baudrate.
@@ -48,6 +54,15 @@ public:
     // Constructors and destructors.
     Driver();
     ~Driver();
+
+    /** The minimum pan postion in rad. */
+    float getMinPanRad() { return mMinPanRad; }
+    /** The maximum pan postion in rad. */
+    float getMaxPanRad() { return mMaxPanRad; }
+    /** The minimum tilt postion in rad. */
+    float getMinTiltRad() { return mMinTiltRad; }
+    /** The maximum tilt postion in rad. */
+    float getMaxTiltRad() { return mMaxTiltRad; }
 
     /**
      *@inharitate // what is this supposed to mean?!

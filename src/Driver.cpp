@@ -33,8 +33,11 @@ const float ptu::Driver::DEGREEPERSECARC = 0.0002778;
 
 
 bool Driver::openSerial(std::string const& port, int baudrate){
-	bool retVal = false;
-        retVal = iodrivers_base::Driver::openSerial(port, baudrate);
+        
+        if (!iodrivers_base::Driver::openSerial(port, baudrate)) {
+            LOG_ERROR_S << "could not open serial port";
+            return false;
+        }
 	
 	//set response mode of the device to short (easier parsing) tarse mode.
 	write("FT ");
@@ -71,8 +74,40 @@ bool Driver::openSerial(std::string const& port, int baudrate){
         }
         mTiltResolutionDeg *= DEGREEPERSECARC;
         LOG_INFO_S << "Tilt resolution is " << mTiltResolutionDeg << " deg/position";
-	
-	return retVal;
+
+        // get min/max pan in rad
+        int min_pan = 0, max_pan = 0;
+
+        write(Cmd::getMinPos(PAN));
+        if ( !(getAns(ans) && getQueryResult(ans,min_pan)) )
+            LOG_WARN_S << "could not acquire min pan positon";
+
+        write(Cmd::getMaxPos(PAN));
+        if ( !(getAns(ans) && !getQueryResult(ans,max_pan)) )
+            LOG_WARN_S << "could not acquire max pan positon";
+        
+        mMinPanRad = float(min_pan) * mPanResolutionDeg * M_PI / 180.0;
+        mMaxPanRad = float(max_pan) * mPanResolutionDeg * M_PI / 180.0;
+
+        LOG_INFO_S << "Pan limits (rad): " <<  mMinPanRad << " to " << mMaxPanRad;
+	     
+        // get min/max tilt in rad
+        int min_tilt = 0, max_tilt = 0;
+
+        write(Cmd::getMinPos(TILT));
+        if ( !(getAns(ans) && getQueryResult(ans,min_tilt)) )
+            LOG_WARN_S << "could not acquire min tilt positon";
+
+        write(Cmd::getMaxPos(TILT));
+        if ( !(getAns(ans) && getQueryResult(ans,max_tilt)) )
+            LOG_WARN_S << "could not acquire max tilt positon";
+        
+        mMinTiltRad = float(min_tilt) * mTiltResolutionDeg * M_PI / 180.0;
+        mMaxTiltRad = float(max_tilt) * mTiltResolutionDeg * M_PI / 180.0;
+
+        LOG_INFO_S << "Tilt limits (rad): " <<  mMinTiltRad << " to " << mMaxTiltRad;
+
+	return true;
 }
 
 
