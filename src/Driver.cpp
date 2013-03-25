@@ -154,8 +154,8 @@ bool Driver::readAns(std::string& ans, int timeout) {
         return false;
     }
 	
-    LOG_DEBUG_S << "readAns, device response string: " << ans;
     ans.assign(reinterpret_cast<const char*>(buffer), packetSize);
+    LOG_DEBUG_S << "readAns, device response string: " << ans;
     return true;
 }
 
