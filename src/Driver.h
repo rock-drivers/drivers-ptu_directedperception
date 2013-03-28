@@ -64,10 +64,8 @@ public:
     /** The maximum tilt postion in rad. */
     float getMaxTiltRad() { return mMaxTiltRad; }
 
-    /**
-     *@inharitate // what is this supposed to mean?!
-    */
-    bool openSerial(std::string const& port, int baudrate);
+    /** Initial communication with the device to set proper modes and query limits. */
+    bool initialize();
 
     /**
      * Sends a message to the device.
@@ -105,11 +103,6 @@ public:
      */
     template<typename T>
     bool getQueryResult(const std::string& ans, T& result);
-
-    /**
-     * Closes the device.
-     */
-    bool close();
 
     /**
      * Get current pan-tilt position.

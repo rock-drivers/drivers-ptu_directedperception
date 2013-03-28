@@ -32,20 +32,16 @@ const float ptu::Driver::DEGREEPERSECARC = 0.0002778;
 //==============================================================================
 
 
-bool Driver::openSerial(std::string const& port, int baudrate){
-        
-        if (!iodrivers_base::Driver::openSerial(port, baudrate)) {
-            LOG_ERROR_S << "could not open serial port";
-            return false;
-        }
-	
-	//set response mode of the device to short (easier parsing) tarse mode.
+bool Driver::initialize() {   
+
+	//set response mode of the device to short (easier parsing) mode.
 	write("FT ");
+
 	//check if set was done.
 	std::string ans="",err="";
 	readAns(ans);
 	if(!validateAns(ans,err)){
-		LOG_ERROR_S << "openSerial: error while changing echo mode: " << err;
+		LOG_ERROR_S << "error while changing echo mode: " << err;
 		return false;
 	}
 
@@ -233,11 +229,6 @@ Driver::~Driver() {
     if (this->isValid()) {
         this->close();
     }
-}
-
-bool Driver::close() {
-    iodrivers_base::Driver::close();
-    return true;
 }
 
 //TODO check if offset parameter is really usefull here, since PO and PP seem to 
