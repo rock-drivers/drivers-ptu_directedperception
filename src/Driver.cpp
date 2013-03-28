@@ -107,25 +107,17 @@ bool Driver::initialize() {
 }
 
 
-bool Driver::write(const std::string& msg, const int& timeout) {
-    LOG_DEBUG_S << "write called with param: \"" << msg << "\"";
-    try {
-        if (timeout == -1) {
-            writePacket(reinterpret_cast<const uint8_t*>(msg.c_str()), msg.size());
-        } else {
-            writePacket(reinterpret_cast<const uint8_t*>(msg.c_str()), msg.size(), timeout);
-        }
-    } catch (iodrivers_base::TimeoutError e) {
-        std::cerr << "write: timeout error" <<std::endl;
-        LOG_ERROR_S << "write: timeout error";
-        return false;
-    } catch (...) {
-        std::cerr << "write: unknown error" << std::endl;
-	LOG_ERROR_S << "write: unknown error";
-        return false;
-    }
+void Driver::write(const std::string& msg, const int& timeout) {
+    
+    if (timeout == -1) {
 
-    return true;
+        writePacket(reinterpret_cast<const uint8_t*>(msg.c_str()), msg.size());
+
+    } else {
+
+        writePacket(reinterpret_cast<const uint8_t*>(msg.c_str()), msg.size(), timeout);
+
+    }
 }
 
 bool Driver::readAns(std::string& ans, int timeout) {

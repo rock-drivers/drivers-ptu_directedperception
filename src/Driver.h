@@ -71,9 +71,9 @@ public:
      * Sends a message to the device.
      * @param msg the message to be sent
      * @param timeout timeout in ms
-     * @return true if successful
+     * @throws iodrivers_base write errors
      */
-    bool write(const std::string& msg, const int& timeout = -1);
+    void write(const std::string& msg, const int& timeout = -1);
 
     /**
      * Read the answer of a query.
