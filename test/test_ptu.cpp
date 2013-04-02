@@ -19,7 +19,6 @@ int main(int argc, char* argv[]) {
     ptu::Driver drv;
     drv.openSerial("/dev/ttyS1", 9600);
 
-    bool ret = false;
     int int_answer = 0;
     float float_answer = 0;
 
@@ -32,11 +31,11 @@ int main(int argc, char* argv[]) {
     std::cout << "Reading positions with drv.getPos and drv.getPosDeg:" << std::endl;
     float_answer = drv.getPosDeg(ptu::PAN, false);
     std::cout << "Answer PAN: " << float_answer << "° (";
-    ret = drv.getPos(ptu::PAN, false, int_answer);
+    int_answer = drv.getPos(ptu::PAN, false);
     std::cout << int_answer << " ticks)" << std::endl;
     float_answer = drv.getPosDeg(ptu::TILT, false);
     std::cout << "Answer TILT: " << float_answer << "° (";
-    ret = drv.getPos(ptu::TILT, false, int_answer);
+    int_answer = drv.getPos(ptu::TILT, false);
     std::cout << int_answer << " ticks)" << std::endl << std::endl;
 
     //Set positions in degrees
@@ -51,22 +50,22 @@ int main(int argc, char* argv[]) {
     std::cout << "Check position" << std::endl;
     float_answer = drv.getPosRad(ptu::PAN, false);
     std::cout << "Answer PAN: " << float_answer << "rad (";
-    ret = drv.getPos(ptu::PAN, false, int_answer);
+    int_answer = drv.getPos(ptu::PAN, false);
     std::cout << int_answer << " ticks)" << std::endl;
     float_answer = drv.getPosRad(ptu::TILT, false);
     std::cout << "Answer TILT: " << float_answer << "rad (";
-    ret = drv.getPos(ptu::TILT, false, int_answer);
+    int_answer = drv.getPos(ptu::TILT, false);
     std::cout << int_answer << " ticks)" << std::endl << std::endl;
     
     //Read positions
     std::cout << "Reading positions with drv.getPos and drv.getPosDeg:" << std::endl;
     float_answer = drv.getPosDeg(ptu::PAN, false);
     std::cout << "Answer PAN: " << float_answer << "° (";
-    ret = drv.getPos(ptu::PAN, false, int_answer);
+    int_answer = drv.getPos(ptu::PAN, false);
     std::cout << int_answer << " ticks)" << std::endl;
     float_answer = drv.getPosDeg(ptu::TILT, false);
     std::cout << "Answer TILT: " << float_answer << "° (";
-    ret = drv.getPos(ptu::TILT, false, int_answer);
+    int_answer = drv.getPos(ptu::TILT, false);
     std::cout << int_answer << " ticks)" << std::endl << std::endl;
 
     //Set relative positions in degrees
@@ -78,11 +77,11 @@ int main(int argc, char* argv[]) {
     std::cout << "Reading positions with drv.getPos and drv.getPosDeg:" << std::endl;
     float_answer = drv.getPosDeg(ptu::PAN, false);
     std::cout << "Answer PAN: " << float_answer << "° (";
-    ret = drv.getPos(ptu::PAN, false, int_answer);
+    int_answer = drv.getPos(ptu::PAN, false);
     std::cout << int_answer << " ticks)" << std::endl;
     float_answer = drv.getPosDeg(ptu::TILT, false);
     std::cout << "Answer TILT: " << float_answer << "° (";
-    ret = drv.getPos(ptu::TILT, false, int_answer);
+    int_answer = drv.getPos(ptu::TILT, false);
     std::cout << int_answer << " ticks)" << std::endl << std::endl;
 
     //Set relative positions in degrees
@@ -94,11 +93,11 @@ int main(int argc, char* argv[]) {
     std::cout << "Reading positions with drv.getPos and drv.getPosDeg:" << std::endl;
     float_answer = drv.getPosDeg(ptu::PAN, false);
     std::cout << "Answer PAN: " << float_answer << "° (";
-    ret = drv.getPos(ptu::PAN, false, int_answer);
+    int_answer = drv.getPos(ptu::PAN, false);
     std::cout << int_answer << " ticks)" << std::endl;
     float_answer = drv.getPosDeg(ptu::TILT, false);
     std::cout << "Answer TILT: " << float_answer << "° (";
-    ret = drv.getPos(ptu::TILT, false, int_answer);
+    int_answer = drv.getPos(ptu::TILT, false);
     std::cout << int_answer << " ticks)" << std::endl << std::endl;
 
     //Reset positions    

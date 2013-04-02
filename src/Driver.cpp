@@ -34,46 +34,24 @@ bool Driver::initialize() {
 
 	//set response mode of the device to short (easier parsing) mode.
 	write("FT ");
-
-	//check if set was done.
-	std::string ans, err="";
-	if(!getAns(ans)){
-		LOG_ERROR_S << "error while changing echo mode: " << err;
-		return false;
-	}
+        readAns(mTimeout);
 
         // get the pan resolution
         write(Cmd::getResolution(PAN));
-        if ( !getAns(ans) ) {
-            LOG_ERROR_S << "error while reading the pan resolution";
-            return false;
-        }
-        mPanResolutionDeg = getQuery<float>(ans) * DEGREEPERSECARC;
+        mPanResolutionDeg = getQuery<float>(readAns(mTimeout)) * DEGREEPERSECARC;
         LOG_INFO_S << "Pan resolution is " << mPanResolutionDeg << " deg/position";
 
         // get the tilt resolution
         write(Cmd::getResolution(TILT));
-        if( !getAns(ans) ) {
-            LOG_ERROR_S << "error while reading the tilt resolution";
-            return false;
-        }
-        mTiltResolutionDeg = getQuery<float>(ans) * DEGREEPERSECARC;
+        mTiltResolutionDeg = getQuery<float>(readAns(mTimeout)) * DEGREEPERSECARC;
         LOG_INFO_S << "Tilt resolution is " << mTiltResolutionDeg << " deg/position";
 
         // get min/max pan in rad
-        int min_pan = 0, max_pan = 0;
-
         write(Cmd::getMinPos(PAN));
-        if ( ! getAns(ans) ) 
-            LOG_WARN_S << "could not acquire min pan positon";
-        else
-            min_pan = getQuery<int>(ans);
+        int min_pan = getQuery<int>(readAns(mTimeout));
 
         write(Cmd::getMaxPos(PAN));
-        if ( !getAns(ans) ) 
-            LOG_WARN_S << "could not acquire max pan positon";
-        else
-            max_pan = getQuery<int>(ans);
+        int max_pan = getQuery<int>(readAns(mTimeout));
 
         mMinPanRad = float(min_pan) * mPanResolutionDeg * M_PI / 180.0;
         mMaxPanRad = float(max_pan) * mPanResolutionDeg * M_PI / 180.0;
@@ -81,19 +59,11 @@ bool Driver::initialize() {
         LOG_INFO_S << "Pan limits (rad): " <<  mMinPanRad << " to " << mMaxPanRad;
 	     
         // get min/max tilt in rad
-        int min_tilt = 0, max_tilt = 0;
-
         write(Cmd::getMinPos(TILT));
-        if ( !getAns(ans) ) 
-            LOG_WARN_S << "could not acquire min tilt positon"; 
-        else
-            min_tilt = getQuery<int>(ans);
+        int min_tilt = getQuery<int>(readAns(mTimeout));
 
         write(Cmd::getMaxPos(TILT));
-        if ( !getAns(ans) ) 
-            LOG_WARN_S << "could not acquire max tilt positon";
-        else
-            max_tilt = getQuery<int>(ans);
+        int max_tilt = getQuery<int>(readAns(mTimeout));
 
         mMinTiltRad = float(min_tilt) * mTiltResolutionDeg * M_PI / 180.0;
         mMaxTiltRad = float(max_tilt) * mTiltResolutionDeg * M_PI / 180.0;
@@ -117,49 +87,32 @@ void Driver::write(const std::string& msg, int timeout) {
     }
 }
 
+
 std::string Driver::readAns(int timeout) {
 
     uint8_t buffer[MAX_PACKET_SIZE];
     size_t bufferSize = MAX_PACKET_SIZE;
     size_t packetSize;
 
-    if (-1 == timeout) {
+    if (-1 == timeout)
         packetSize = readPacket(buffer, bufferSize);
-    } else {
+    else
         packetSize = readPacket(buffer, bufferSize, timeout);
-    }
-	
+   
+
+    if ( packetSize < 2) 
+        throw std::runtime_error("answer must be at least of size 2");
+
+    else if (buffer[0] != Cmd::SUCC_BEG[0] && buffer[0] != Cmd::ERR_BEG[0])
+        throw std::runtime_error("answer must always start with " + Cmd::SUCC_BEG + 
+                " or " + Cmd::ERR_BEG);
+
+    else if (buffer[0] == Cmd::ERR_BEG[0])
+        throw std::runtime_error("error in command, reply: " + 
+                std::string(reinterpret_cast<const char*>(buffer), packetSize));
+
+
     return std::string(reinterpret_cast<const char*>(buffer), packetSize);
-}
-
-bool Driver::validateAns(const std::string& ans, std::string& error) {
-
-    if (ans.size() < 2) {
-        error = "answer must be at least of size 2";
-        return false;
-    } else if (ans[0] != Cmd::SUCC_BEG[0] && ans[0] != Cmd::ERR_BEG[0]) {
-        error = "answer must always start with " + Cmd::SUCC_BEG + " or " + Cmd::ERR_BEG;
-        return false;
-    } else if (ans[0] == Cmd::ERR_BEG[0]) {
-        error = ans.substr(1, ans.size() - 2);
-        return false;
-    }
-
-    return true;
-}
-
-bool Driver::getAns(std::string& ans) {
-
-    std::string error;
-    
-    ans = readAns(mTimeout);
-
-    if (!validateAns(ans, error) ) {
-	LOG_ERROR_S << "validation error /" << error << "/ while reading " << ans;
-        return false;
-    }
-
-    return true;
 }
     
 
@@ -207,40 +160,19 @@ Driver::~Driver() {
 
 //TODO check if offset parameter is really usefull here, since PO and PP seem to 
 //     have always the same answer.
-bool Driver::getPos(const Axis& axis, const bool& offset, int& pos) {
+int Driver::getPos(Axis axis, bool offset) {
 
     write(Cmd::getPos(axis, offset));
 
-    std::string ans = readAns(mTimeout);
-
-    std::string error;
-    if ( !validateAns(ans, error) ) {
-	LOG_ERROR_S << "getPos: " << error;
-        return false;
-    }
-
-    std::string toFind("* ");
-    size_t found = ans.find(toFind);
-
-    if (found == std::string::npos) {
-	LOG_ERROR_S << "getPos: invalid answer format";
-        return false;
-    }
-
-    pos = lexical_cast<int>(ans.substr(found + toFind.size()));
-
-    return true;
+    return getQuery<int>(readAns(mTimeout));
 }
 
+float Driver::getPosDeg(Axis axis, bool offset) {
 
-float Driver::getPosDeg(const Axis& axis, const bool& offset){
-
-    int tickPos = 0;
-    getPos(axis,offset,tickPos);
-    return (float)tickPos * DEGREEPERTICK;
+    return float(getPos(axis, offset)) * DEGREEPERTICK;
 }
 
-float Driver::getPosRad(const Axis& axis, const bool& offset){
+float Driver::getPosRad(Axis axis, bool offset) {
 
     return getPosDeg(axis, offset) / 180.0 * M_PI;
 }
@@ -267,13 +199,7 @@ bool Driver::setPos(const Axis& axis, const bool& offset, const int& val,
 
     write(Cmd::setPos(val, axis, offset));
 
-    std::string ans = readAns(mTimeout);
-
-    std::string error;
-    if ( !validateAns(ans, error) ) {
-	LOG_ERROR_S << "setPos: " << error;
-        return false;
-    }
+    readAns(mTimeout);
 
     if (awaitCompletion){
 	
@@ -282,20 +208,7 @@ bool Driver::setPos(const Axis& axis, const bool& offset, const int& val,
 	write(Cmd::awaitPosCmdCompletion());
 	
 	//check if command was set successfully.
-	ans = readAns(mTimeout);
-	std::string err = "";
-	if(!validateAns(ans, err)){
-		LOG_ERROR_S << "failed to set await completion mode: " << err;
-		//log error but do not answer with fail code.
-	}
-	
-    }
-
-    if (ans == Cmd::SUCC_CMD) {
-        return true;
-    } else {
-	LOG_ERROR_S << "setPos: failed to set position";
-        return false;
+	readAns(mTimeout);
     }
 
     return true;
@@ -305,9 +218,9 @@ bool Driver::setPos(const Axis& axis, const bool& offset, const int& val,
 bool Driver::setSpeed(const Axis& axis, const int& speed) {
     
     write(Cmd::setDesiredSpeed(speed,axis));
-    
-    std::string ans;
-    return getAns(ans);
+   
+    readAns(mTimeout); 
+    return true;
 }
 
 bool Driver::setSpeedDeg(const Axis& axis, const float& speed) {
@@ -329,4 +242,5 @@ bool Driver::setSpeedRad(const Axis& axis, const float& speed) {
 void Driver::setHalt() {
 
     write(Cmd::haltPosCmd(true,true));
+    readAns();
 }

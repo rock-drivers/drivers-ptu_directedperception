@@ -81,18 +81,6 @@ public:
     std::string readAns(int timeout = 10000);
 
     /**
-     * Tells if an answer is correct or not.
-     * @param error the error in case the answer is invalid
-     * @return false if the answer is invalid
-     */
-    bool validateAns(const std::string& ans, std::string& error);
-
-    /**
-     * Get an answer. Combines readAns and validateAns.
-     */
-    bool getAns(std::string& ans);
-
-    /**
      * Converts an \p answer to a value of type T.
      * The answer string is like '* <result><CR>'.
      */
@@ -105,9 +93,9 @@ public:
      * Get current pan-tilt position.
      * @param axis the axis to be used
      * @param offset if true, the relative value is used
-     * @return true if successful
+     * @return position
      */
-    bool getPos(const Axis& axis, const bool& offset, int& pos);
+    int getPos(Axis axis, bool offset);
 
     /**
      * Get the position as degree value instead of ticks as given by getPos.
@@ -115,10 +103,10 @@ public:
      * @param offset if true the offset command will be used.
      * @return the position of selected axis as degree value. (0 is front center). 
      */
-    float getPosDeg(const Axis &axis, const bool &offset);
+    float getPosDeg(Axis axis, bool offset);
     
     /** Get the position in radian. @see getPos */
-    float getPosRad(const Axis &axis, const bool &offset);
+    float getPosRad(Axis axis, bool offset);
 
     /**
       * Set the Position for selected axis to given value in degree.
