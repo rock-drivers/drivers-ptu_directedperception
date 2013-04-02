@@ -37,8 +37,7 @@ bool Driver::initialize() {
 
 	//check if set was done.
 	std::string ans, err="";
-	ans = readAns(mTimeout);
-	if(!getAns()){
+	if(!getAns(ans)){
 		LOG_ERROR_S << "error while changing echo mode: " << err;
 		return false;
 	}
@@ -210,8 +209,7 @@ Driver::~Driver() {
 //     have always the same answer.
 bool Driver::getPos(const Axis& axis, const bool& offset, int& pos) {
 
-    bool ret = write(Cmd::getPos(axis, offset));
-    if (!ret) return false;
+    write(Cmd::getPos(axis, offset));
 
     std::string ans = readAns(mTimeout);
 
@@ -267,8 +265,7 @@ bool Driver::setPosRad(const Axis &axis, const bool &offset, const float &val,
 bool Driver::setPos(const Axis& axis, const bool& offset, const int& val, 
                     const bool& awaitCompletion) {
 
-    bool ret = write(Cmd::setPos(val, axis, offset));
-    if (!ret) return false;
+    write(Cmd::setPos(val, axis, offset));
 
     std::string ans = readAns(mTimeout);
 
@@ -307,8 +304,7 @@ bool Driver::setPos(const Axis& axis, const bool& offset, const int& val,
 
 bool Driver::setSpeed(const Axis& axis, const int& speed) {
     
-    if (!write(Cmd::setDesiredSpeed(speed,axis)))
-        return false;
+    write(Cmd::setDesiredSpeed(speed,axis));
     
     std::string ans;
     return getAns(ans);
@@ -330,7 +326,7 @@ bool Driver::setSpeedRad(const Axis& axis, const float& speed) {
     return setSpeedDeg(axis, speed * 180.0 / M_PI);
 }
 
-bool Driver::setHalt() {
+void Driver::setHalt() {
 
-    return write(Cmd::haltPosCmd(true,true));
+    write(Cmd::haltPosCmd(true,true));
 }

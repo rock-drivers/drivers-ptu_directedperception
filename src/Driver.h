@@ -145,25 +145,17 @@ public:
     bool setPos(const Axis& axis, const bool& offset = false, const int& val = 0, 
                 const bool& awaitCompletion = false);
 
-    /**
-     * Set desired \p speed for an \p axis in positions/second.
-     */
+    /** Set desired \p speed for an \p axis in positions/second. */
     bool setSpeed(const Axis& axis, const int& speed);
     
-    /**
-     * Set desired \p speed for an \p axis in degree/second.
-     */
+    /** Set desired \p speed for an \p axis in degree/second. */
     bool setSpeedDeg(const Axis& axis, const float& speed);
     
-    /**
-     * Set desired \p speed for an \p axis in radian/second.
-     */
+    /** Set desired \p speed for an \p axis in radian/second. */
     bool setSpeedRad(const Axis& axis, const float& speed);
 
-    /**
-     * Stops motion.
-     */
-    bool setHalt();
+    /** Stops motion. */
+    void setHalt();
 };
     
 } // end of namespace ptu
