@@ -2,7 +2,6 @@
  * Implementation for the FLIR Pan-Tilt Unit Driver.
  * @file Driver.cpp
  * @author Remus Claudiu Dumitru <r.dumitru@jacobs-university.de>
- * @date Wed Apr 11 13:25:02 CEST 2012
  */
 
 //==============================================================================
@@ -11,13 +10,12 @@
 #include "Driver.h"
 using namespace ptu;
 
+
 #include <iostream>
-#include <sstream>
 #include <stdexcept>
 #include <cmath>
 
-#include <boost/current_function.hpp>
-using namespace boost;
+using boost::lexical_cast;
 
 //==============================================================================
 // Static members initialization
@@ -38,9 +36,9 @@ bool Driver::initialize() {
 	write("FT ");
 
 	//check if set was done.
-	std::string ans="",err="";
-	readAns(ans);
-	if(!validateAns(ans,err)){
+	std::string ans, err="";
+	ans = readAns(mTimeout);
+	if(!getAns()){
 		LOG_ERROR_S << "error while changing echo mode: " << err;
 		return false;
 	}
@@ -107,7 +105,7 @@ bool Driver::initialize() {
 }
 
 
-void Driver::write(const std::string& msg, const int& timeout) {
+void Driver::write(const std::string& msg, int timeout) {
     
     if (timeout == -1) {
 
@@ -120,34 +118,23 @@ void Driver::write(const std::string& msg, const int& timeout) {
     }
 }
 
-bool Driver::readAns(std::string& ans, int timeout) {
+std::string Driver::readAns(int timeout) {
 
     uint8_t buffer[MAX_PACKET_SIZE];
     size_t bufferSize = MAX_PACKET_SIZE;
     size_t packetSize;
 
-    try {
-        if (-1 == timeout) {
-	    LOG_DEBUG_S << "readAns called readPacket without timeout";
-            packetSize = readPacket(buffer, bufferSize);
-        } else {
-	    LOG_DEBUG_S << "readAns called readPacket WITH timeout: " << timeout << ".";
-            packetSize = readPacket(buffer, bufferSize, timeout);
-        }
-    } catch (iodrivers_base::TimeoutError e) {
-        LOG_ERROR_S << "readAns: timeout error" <<std::endl;
-        return false;
-    } catch (...) {
-        LOG_ERROR_S<< "readAns : unknown error" <<std::endl;
-        return false;
+    if (-1 == timeout) {
+        packetSize = readPacket(buffer, bufferSize);
+    } else {
+        packetSize = readPacket(buffer, bufferSize, timeout);
     }
 	
-    LOG_DEBUG_S << "readAns, device response string: " << ans;
-    ans.assign(reinterpret_cast<const char*>(buffer), packetSize);
-    return true;
+    return std::string(reinterpret_cast<const char*>(buffer), packetSize);
 }
 
 bool Driver::validateAns(const std::string& ans, std::string& error) {
+
     if (ans.size() < 2) {
         error = "answer must be at least of size 2";
         return false;
@@ -166,7 +153,7 @@ bool Driver::getAns(std::string& ans) {
 
     std::string error;
     
-    if (!readAns(ans, mTimeout)) return false;
+    ans = readAns(mTimeout);
 
     if (!validateAns(ans, error) ) {
 	LOG_ERROR_S << "validation error /" << error << "/ while reading " << ans;
@@ -190,8 +177,6 @@ int Driver::extractPacket(const uint8_t* buffer, size_t size) const {
     size_t beg = packet.find_first_of(begs);
     size_t end = packet.find_first_of(Cmd::DELIM_CR);
 
-    //cout << beg << " " << end <<std::endl;
-
     // see the documentation of extractPacket for further details
     if (beg == std::string::npos && end == std::string::npos) {
         return (-size);
@@ -212,9 +197,7 @@ Driver::Driver() :
         iodrivers_base::Driver(MAX_PACKET_SIZE),
         mPanResolutionDeg(1.0),
         mTiltResolutionDeg(1.0),
-        mTimeout(10000),
-        _baudrate(DEFAULT_BAUDRATE)
-
+        mTimeout(10000)
 {}
 
 Driver::~Driver() {
@@ -230,15 +213,10 @@ bool Driver::getPos(const Axis& axis, const bool& offset, int& pos) {
     bool ret = write(Cmd::getPos(axis, offset));
     if (!ret) return false;
 
-    std::string ans;
-    // TODO fix the timeout
-    ret = readAns(ans, mTimeout);
-    if (!ret) return false;
+    std::string ans = readAns(mTimeout);
 
     std::string error;
-    ret = validateAns(ans, error);
-    if (!ret) {
-        std::cerr << "getPos: " << error << std::endl;
+    if ( !validateAns(ans, error) ) {
 	LOG_ERROR_S << "getPos: " << error;
         return false;
     }
@@ -247,29 +225,25 @@ bool Driver::getPos(const Axis& axis, const bool& offset, int& pos) {
     size_t found = ans.find(toFind);
 
     if (found == std::string::npos) {
-        std::cerr << "getPos: invalid answer format" << std::endl;
 	LOG_ERROR_S << "getPos: invalid answer format";
         return false;
     }
 
-    std::stringstream ss;
-    ss << ans.substr(found + toFind.size());
-    ss >> pos;
+    pos = lexical_cast<int>(ans.substr(found + toFind.size()));
 
     return true;
 }
 
 
-//get the position as degree.
 float Driver::getPosDeg(const Axis& axis, const bool& offset){
-    float retVal = 0;
+
     int tickPos = 0;
     getPos(axis,offset,tickPos);
-    retVal = (float)tickPos * DEGREEPERTICK;
-    return retVal;
+    return (float)tickPos * DEGREEPERTICK;
 }
 
 float Driver::getPosRad(const Axis& axis, const bool& offset){
+
     return getPosDeg(axis, offset) / 180.0 * M_PI;
 }
 
@@ -278,18 +252,15 @@ float Driver::getPosRad(const Axis& axis, const bool& offset){
 bool Driver::setPosDeg(const Axis &axis, const bool &offset, const float &val, 
                        const bool &awaitCompletion){
     
-    //calculate tick value
     int ticks = round(val / DEGREEPERTICK);
-
-    //setPos in ticks.
     setPos(axis, offset, ticks, awaitCompletion);
     
     return true;
 }
 bool Driver::setPosRad(const Axis &axis, const bool &offset, const float &val, 
                        const bool &awaitCompletion){
-    return setPosDeg(axis, offset, val / M_PI * 180.0, awaitCompletion);
 
+    return setPosDeg(axis, offset, val / M_PI * 180.0, awaitCompletion);
 }
 
 
@@ -299,15 +270,10 @@ bool Driver::setPos(const Axis& axis, const bool& offset, const int& val,
     bool ret = write(Cmd::setPos(val, axis, offset));
     if (!ret) return false;
 
-    std::string ans;
-    // TODO fix the timeout
-    ret = readAns(ans, mTimeout);
-    if (!ret) return false;
+    std::string ans = readAns(mTimeout);
 
     std::string error;
-    ret = validateAns(ans, error);
-    if (!ret) {
-        std::cerr << "setPos: " << error << std::endl;
+    if ( !validateAns(ans, error) ) {
 	LOG_ERROR_S << "setPos: " << error;
         return false;
     }
@@ -319,9 +285,9 @@ bool Driver::setPos(const Axis& axis, const bool& offset, const int& val,
 	write(Cmd::awaitPosCmdCompletion());
 	
 	//check if command was set successfully.
-	ret = readAns(ans, mTimeout);
+	ans = readAns(mTimeout);
 	std::string err = "";
-	if(!ret or !validateAns(ans, err)){
+	if(!validateAns(ans, err)){
 		LOG_ERROR_S << "failed to set await completion mode: " << err;
 		//log error but do not answer with fail code.
 	}
@@ -331,7 +297,6 @@ bool Driver::setPos(const Axis& axis, const bool& offset, const int& val,
     if (ans == Cmd::SUCC_CMD) {
         return true;
     } else {
-        std::cerr << "setPos: failed to set position" << std::endl;
 	LOG_ERROR_S << "setPos: failed to set position";
         return false;
     }

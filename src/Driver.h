@@ -2,7 +2,6 @@
   * Definition of FLIR Pan-Tilt Unit Driver.
   * @file Driver.h
   * @author Remus Claudiu Dumitru <r.dumitru@jacobs-university.de>
-  * @date Wed Apr 11 CEST 2012
   */
 
 #ifndef _DRIVER_H
@@ -11,9 +10,9 @@
 //==============================================================================
 // Includes
 //==============================================================================
+#include <boost/lexical_cast.hpp>
 #include <base/logging.h>
 #include "iodrivers_base/Driver.hpp"
-//#include "Driver.hpp"    // include I am using for eclipse
 
 #include "Cmd.h"
 
@@ -26,8 +25,8 @@ class Driver : public iodrivers_base::Driver {
 private:
     static const int DEFAULT_BAUDRATE;  //!< The default baudrate that the ptu starts with.
     static const int MAX_PACKET_SIZE;   //!< The maximum packet size.
-    static const float DEGREEPERTICK; //Degrees per tick. (same for TILT AND PAN) //TODO maybe calculated??
-    static const float DEGREEPERSECARC;
+    static const float DEGREEPERTICK; //!< Degrees per tick. (same for TILT AND PAN) //TODO maybe calculated??
+    static const float DEGREEPERSECARC; //!<  Used for computing the resolution.
 
     float mPanResolutionDeg;
     float mTiltResolutionDeg;
@@ -38,8 +37,6 @@ private:
     float mMaxTiltRad;
 
     int mTimeout; //<! Timeout in milliseconds(?).
-
-    int _baudrate;  //!< The current baudrate.
 
 
 protected:
@@ -73,16 +70,15 @@ public:
      * @param timeout timeout in ms
      * @throws iodrivers_base write errors
      */
-    void write(const std::string& msg, const int& timeout = -1);
+    void write(const std::string& msg, int timeout = -1);
 
     /**
      * Read the answer of a query.
-     * @param ans the answer of the query
      * @param timeout timeout in ms
-     * @return the size of the data contained in \c buffer
+     * @return answer string
      */
-    //TODO fix timeout!
-    bool readAns(std::string& ans, int timeout = 10000);
+    //TODO fix timeout! Could be remove could be set via iodrivers_base?
+    std::string readAns(int timeout = 10000);
 
     /**
      * Tells if an answer is correct or not.
@@ -116,14 +112,12 @@ public:
      * Get the position as degree value instead of ticks as given by getPos.
      * @param axis Select the axis to be read out. (PAN or TILT)
      * @param offset if true the offset command will be used.
-     * @return the position of selected axis as degree value. (0 is front center).
-     *  
+     * @return the position of selected axis as degree value. (0 is front center). 
      */
     float getPosDeg(const Axis &axis, const bool &offset);
     
     /** Get the position in radian. @see getPos */
     float getPosRad(const Axis &axis, const bool &offset);
-
 
     /**
       * Set the Position for selected axis to given value in degree.
@@ -137,6 +131,7 @@ public:
 
     /** Set the position in radian. @see setPos */
     bool setPosRad(const Axis &axis, const bool &offset, const float &val, const bool &awaitCompletion = false);
+
     /**
      * Set current pan-tilt position.
      * @param val the value to which to set the position
