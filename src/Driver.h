@@ -93,12 +93,13 @@ public:
     bool getAns(std::string& ans);
 
     /**
-     * Parse the query \p result form the string \p ans.
-     * The query result will be like '* <result><CR>'.
-     * @return false if something went wrong.
+     * Converts an \p answer to a value of type T.
+     * The answer string is like '* <result><CR>'.
      */
     template<typename T>
-    bool getQueryResult(const std::string& ans, T& result);
+    T getQuery(const std::string& answer) {
+        return boost::lexical_cast<T>( answer.substr(2) );
+    }
 
     /**
      * Get current pan-tilt position.
@@ -165,24 +166,6 @@ public:
     bool setHalt();
 };
     
-template<typename T>
-bool Driver::getQueryResult(const std::string& ans, T& result) {
-
-    std::string toFind("* ");
-    size_t found = ans.find(toFind);
-
-    if (found == std::string::npos) {
-        LOG_ERROR_S << "getPos: invalid answer format";
-        return false;
-    }
-
-    std::stringstream ss;
-    ss << ans.substr(found + toFind.size());
-    ss >> result;
-
-    return true;
-}
-
 } // end of namespace ptu
 
 #endif // _DRIVER_H

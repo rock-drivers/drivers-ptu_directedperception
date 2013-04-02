@@ -49,11 +49,7 @@ bool Driver::initialize() {
             LOG_ERROR_S << "error while reading the pan resolution";
             return false;
         }
-        if(!getQueryResult(ans, mPanResolutionDeg)) {
-            LOG_ERROR_S << "cannot parse ans for pan resolution";
-            return false; 
-        }
-        mPanResolutionDeg *= DEGREEPERSECARC;
+        mPanResolutionDeg = getQuery<float>(ans) * DEGREEPERSECARC;
         LOG_INFO_S << "Pan resolution is " << mPanResolutionDeg << " deg/position";
 
         // get the tilt resolution
@@ -62,24 +58,24 @@ bool Driver::initialize() {
             LOG_ERROR_S << "error while reading the tilt resolution";
             return false;
         }
-        if(!getQueryResult(ans, mTiltResolutionDeg)) {
-            LOG_ERROR_S << "cannot parse " << ans << " for tilt resolution";
-            return false; 
-        }
-        mTiltResolutionDeg *= DEGREEPERSECARC;
+        mTiltResolutionDeg = getQuery<float>(ans) * DEGREEPERSECARC;
         LOG_INFO_S << "Tilt resolution is " << mTiltResolutionDeg << " deg/position";
 
         // get min/max pan in rad
         int min_pan = 0, max_pan = 0;
 
         write(Cmd::getMinPos(PAN));
-        if ( !(getAns(ans) && getQueryResult(ans,min_pan)) )
+        if ( ! getAns(ans) ) 
             LOG_WARN_S << "could not acquire min pan positon";
+        else
+            min_pan = getQuery<int>(ans);
 
         write(Cmd::getMaxPos(PAN));
-        if ( !(getAns(ans) && !getQueryResult(ans,max_pan)) )
+        if ( !getAns(ans) ) 
             LOG_WARN_S << "could not acquire max pan positon";
-        
+        else
+            max_pan = getQuery<int>(ans);
+
         mMinPanRad = float(min_pan) * mPanResolutionDeg * M_PI / 180.0;
         mMaxPanRad = float(max_pan) * mPanResolutionDeg * M_PI / 180.0;
 
@@ -89,13 +85,17 @@ bool Driver::initialize() {
         int min_tilt = 0, max_tilt = 0;
 
         write(Cmd::getMinPos(TILT));
-        if ( !(getAns(ans) && getQueryResult(ans,min_tilt)) )
-            LOG_WARN_S << "could not acquire min tilt positon";
+        if ( !getAns(ans) ) 
+            LOG_WARN_S << "could not acquire min tilt positon"; 
+        else
+            min_tilt = getQuery<int>(ans);
 
         write(Cmd::getMaxPos(TILT));
-        if ( !(getAns(ans) && getQueryResult(ans,max_tilt)) )
+        if ( !getAns(ans) ) 
             LOG_WARN_S << "could not acquire max tilt positon";
-        
+        else
+            max_tilt = getQuery<int>(ans);
+
         mMinTiltRad = float(min_tilt) * mTiltResolutionDeg * M_PI / 180.0;
         mMaxTiltRad = float(max_tilt) * mTiltResolutionDeg * M_PI / 180.0;
 
