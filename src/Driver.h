@@ -86,7 +86,7 @@ public:
      */
     template<typename T>
     T getQuery(const std::string& answer) {
-        return boost::lexical_cast<T>( answer.substr(2) );
+        return boost::lexical_cast<T>( answer.substr(2, answer.find_last_of("0123456789")-1) );
     }
 
     /**
