@@ -62,7 +62,7 @@ public:
     float getMaxTiltRad() { return mMaxTiltRad; }
 
     /** Initial communication with the device to set proper modes and query limits. */
-    bool initialize();
+    void initialize();
 
     /**
      * Sends a message to the device.

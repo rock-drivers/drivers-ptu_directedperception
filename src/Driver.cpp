@@ -30,7 +30,7 @@ const float ptu::Driver::DEGREEPERSECARC = 0.0002778;
 //==============================================================================
 
 
-bool Driver::initialize() {   
+void Driver::initialize() {   
 
 	//set response mode of the device to short (easier parsing) mode.
 	write("FT ");
@@ -69,8 +69,6 @@ bool Driver::initialize() {
         mMaxTiltRad = float(max_tilt) * mTiltResolutionDeg * M_PI / 180.0;
 
         LOG_INFO_S << "Tilt limits (rad): " <<  mMinTiltRad << " to " << mMaxTiltRad;
-
-	return true;
 }
 
 
