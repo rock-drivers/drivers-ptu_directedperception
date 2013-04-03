@@ -213,28 +213,28 @@ bool Driver::setPos(const Axis& axis, const bool& offset, const int& val,
 }
 
 
-bool Driver::setSpeed(const Axis& axis, const int& speed) {
+void Driver::setSpeed(Axis axis, int speed) {
     
     write(Cmd::setDesiredSpeed(speed,axis));
    
     readAns(mTimeout); 
-    return true;
 }
 
-bool Driver::setSpeedDeg(const Axis& axis, const float& speed) {
+void Driver::setSpeedDeg(Axis axis, float speed) {
     
     int speed_pos_s;
+
     if ( axis == TILT )
         speed_pos_s = speed / mTiltResolutionDeg;
     else if (axis == PAN )
         speed_pos_s = speed / mPanResolutionDeg;
 
-    return setSpeed(axis,speed_pos_s);
+    setSpeed(axis,speed_pos_s);
 }
 
-bool Driver::setSpeedRad(const Axis& axis, const float& speed) {
+void Driver::setSpeedRad(Axis axis, float speed) {
 
-    return setSpeedDeg(axis, speed * 180.0 / M_PI);
+    setSpeedDeg(axis, speed * 180.0 / M_PI);
 }
 
 void Driver::setHalt() {

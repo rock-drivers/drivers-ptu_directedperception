@@ -134,13 +134,13 @@ public:
                 const bool& awaitCompletion = false);
 
     /** Set desired \p speed for an \p axis in positions/second. */
-    bool setSpeed(const Axis& axis, const int& speed);
+    void setSpeed(Axis axis, int speed);
     
     /** Set desired \p speed for an \p axis in degree/second. */
-    bool setSpeedDeg(const Axis& axis, const float& speed);
+    void setSpeedDeg(Axis axis, float speed);
     
     /** Set desired \p speed for an \p axis in radian/second. */
-    bool setSpeedRad(const Axis& axis, const float& speed);
+    void setSpeedRad(Axis axis, float speed);
 
     /** Stops motion. */
     void setHalt();
