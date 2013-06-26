@@ -34,24 +34,24 @@ void Driver::initialize() {
 
 	//set response mode of the device to short (easier parsing) mode.
 	write("FT ");
-        readAns(mTimeout);
+        readAns();
 
         // get the pan resolution
         write(Cmd::getResolution(PAN));
-        mPanResolutionDeg = getQuery<float>(readAns(mTimeout)) * DEGREEPERSECARC;
+        mPanResolutionDeg = getQuery<float>(readAns()) * DEGREEPERSECARC;
         LOG_INFO_S << "Pan resolution is " << mPanResolutionDeg << " deg/position";
 
         // get the tilt resolution
         write(Cmd::getResolution(TILT));
-        mTiltResolutionDeg = getQuery<float>(readAns(mTimeout)) * DEGREEPERSECARC;
+        mTiltResolutionDeg = getQuery<float>(readAns()) * DEGREEPERSECARC;
         LOG_INFO_S << "Tilt resolution is " << mTiltResolutionDeg << " deg/position";
 
         // get min/max pan in rad
         write(Cmd::getMinPos(PAN));
-        int min_pan = getQuery<int>(readAns(mTimeout));
+        int min_pan = getQuery<int>(readAns());
 
         write(Cmd::getMaxPos(PAN));
-        int max_pan = getQuery<int>(readAns(mTimeout));
+        int max_pan = getQuery<int>(readAns());
 
         mMinPanRad = float(min_pan) * mPanResolutionDeg * M_PI / 180.0;
         mMaxPanRad = float(max_pan) * mPanResolutionDeg * M_PI / 180.0;
@@ -60,10 +60,10 @@ void Driver::initialize() {
 	     
         // get min/max tilt in rad
         write(Cmd::getMinPos(TILT));
-        int min_tilt = getQuery<int>(readAns(mTimeout));
+        int min_tilt = getQuery<int>(readAns());
 
         write(Cmd::getMaxPos(TILT));
-        int max_tilt = getQuery<int>(readAns(mTimeout));
+        int max_tilt = getQuery<int>(readAns());
 
         mMinTiltRad = float(min_tilt) * mTiltResolutionDeg * M_PI / 180.0;
         mMaxTiltRad = float(max_tilt) * mTiltResolutionDeg * M_PI / 180.0;
@@ -72,32 +72,20 @@ void Driver::initialize() {
 }
 
 
-void Driver::write(const std::string& msg, int timeout) {
+void Driver::write(const std::string& msg) {
     
-    if (timeout == -1) {
-
-        writePacket(reinterpret_cast<const uint8_t*>(msg.c_str()), msg.size());
-
-    } else {
-
-        writePacket(reinterpret_cast<const uint8_t*>(msg.c_str()), msg.size(), timeout);
-
-    }
+    writePacket(reinterpret_cast<const uint8_t*>(msg.c_str()), msg.size());
 }
 
 
-std::string Driver::readAns(int timeout) {
+std::string Driver::readAns() {
 
     uint8_t buffer[MAX_PACKET_SIZE];
     size_t bufferSize = MAX_PACKET_SIZE;
     size_t packetSize;
 
-    if (-1 == timeout)
-        packetSize = readPacket(buffer, bufferSize);
-    else
-        packetSize = readPacket(buffer, bufferSize, timeout);
+    packetSize = readPacket(buffer, bufferSize);
    
-
     if ( packetSize < 2) 
         throw std::runtime_error("answer must be at least of size 2");
 
@@ -110,7 +98,9 @@ std::string Driver::readAns(int timeout) {
                 std::string(reinterpret_cast<const char*>(buffer), packetSize));
 
 
-    return std::string(reinterpret_cast<const char*>(buffer), packetSize);
+    std::string reply(reinterpret_cast<const char*>(buffer), packetSize);
+    LOG_DEBUG_S << "readAns: " << reply;
+    return reply;
 }
     
 
@@ -146,8 +136,7 @@ int Driver::extractPacket(const uint8_t* buffer, size_t size) const {
 Driver::Driver() :
         iodrivers_base::Driver(MAX_PACKET_SIZE),
         mPanResolutionDeg(1.0),
-        mTiltResolutionDeg(1.0),
-        mTimeout(10000)
+        mTiltResolutionDeg(1.0)
 {}
 
 Driver::~Driver() {
@@ -162,7 +151,7 @@ int Driver::getPos(Axis axis, bool offset) {
 
     write(Cmd::getPos(axis, offset));
 
-    return getQuery<int>(readAns(mTimeout));
+    return getQuery<int>(readAns());
 }
 
 float Driver::getPosDeg(Axis axis, bool offset) {
@@ -197,7 +186,7 @@ bool Driver::setPos(const Axis& axis, const bool& offset, const int& val,
 
     write(Cmd::setPos(val, axis, offset));
 
-    readAns(mTimeout);
+    readAns();
 
     if (awaitCompletion){
 	
@@ -206,7 +195,7 @@ bool Driver::setPos(const Axis& axis, const bool& offset, const int& val,
 	write(Cmd::awaitPosCmdCompletion());
 	
 	//check if command was set successfully.
-	readAns(mTimeout);
+	readAns();
     }
 
     return true;
@@ -217,7 +206,7 @@ void Driver::setSpeed(Axis axis, int speed) {
     
     write(Cmd::setDesiredSpeed(speed,axis));
    
-    readAns(mTimeout); 
+    readAns(); 
 }
 
 void Driver::setSpeedDeg(Axis axis, float speed) {

@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include <boost/program_options.hpp>
+#include <base/time.h>
 
 #include <Driver.h>
 #include <Cmd.h>
@@ -17,7 +18,11 @@ int main(int argc, char* argv[]) {
         ("query,q", "queries the properties of the ptu"); 
 
     ptu::Driver drv;
+    base::Time tout = base::Time::fromSeconds(2.0);
+    drv.setReadTimeout(tout);
+    drv.setWriteTimeout(tout);
     drv.openSerial("/dev/ttyS1", 9600);
+    drv.initialize();
 
     int int_answer = 0;
     float float_answer = 0;
@@ -69,9 +74,9 @@ int main(int argc, char* argv[]) {
     std::cout << int_answer << " ticks)" << std::endl << std::endl;
 
     //Set relative positions in degrees
-    std::cout << "Setting relative degree position +20°(P), -10°(T) with drv.setPosDeg and awaitCompletion" << std::endl      << std::endl;
+    std::cout << "Setting relative degree position +20°(P), 10°(T) with drv.setPosDeg and awaitCompletion" << std::endl      << std::endl;
     drv.setPosDeg(ptu::PAN, true, 20, true);
-    drv.setPosDeg(ptu::TILT, true, -10, true);
+    drv.setPosDeg(ptu::TILT, true, 10, true);
      
     //Read positions
     std::cout << "Reading positions with drv.getPos and drv.getPosDeg:" << std::endl;
@@ -85,9 +90,9 @@ int main(int argc, char* argv[]) {
     std::cout << int_answer << " ticks)" << std::endl << std::endl;
 
     //Set relative positions in degrees
-    std::cout << "Resetting through relative degree position -50°(P), +30°(T) with drv.setPosDeg and awaitCompletion" <<     std::endl      << std::endl;
+    std::cout << "Resetting through relative degree position -50°(P), -15°(T) with drv.setPosDeg and awaitCompletion" <<     std::endl      << std::endl;
     drv.setPosDeg(ptu::PAN, true, -50, true);
-    drv.setPosDeg(ptu::TILT, true, 30, true);
+    drv.setPosDeg(ptu::TILT, true, -15, true);
 
     //Read positions
     std::cout << "Reading positions with drv.getPos and drv.getPosDeg:" << std::endl;

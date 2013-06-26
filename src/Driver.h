@@ -36,9 +36,6 @@ private:
     float mMinTiltRad;
     float mMaxTiltRad;
 
-    int mTimeout; //<! Timeout in milliseconds(?).
-
-
 protected:
     /**
      * Find a packet into the currently accumulated data.
@@ -70,7 +67,7 @@ public:
      * @param timeout timeout in ms
      * @throws iodrivers_base write errors
      */
-    void write(const std::string& msg, int timeout = -1);
+    void write(const std::string& msg);
 
     /**
      * Read the answer of a query.
@@ -78,7 +75,7 @@ public:
      * @return answer string
      */
     //TODO fix timeout! Could be remove could be set via iodrivers_base?
-    std::string readAns(int timeout = 10000);
+    std::string readAns();
 
     /**
      * Converts an \p answer to a value of type T.
