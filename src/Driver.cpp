@@ -99,7 +99,6 @@ std::string Driver::readAns() {
 
 
     std::string reply(reinterpret_cast<const char*>(buffer), packetSize);
-    LOG_DEBUG_S << "readAns: " << reply;
     return reply;
 }
     
