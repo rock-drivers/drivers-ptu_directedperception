@@ -11,7 +11,7 @@
 // Includes
 //==============================================================================
 #include <boost/lexical_cast.hpp>
-#include <base/logging.h>
+#include <base-logging/Logging.hpp>
 #include "iodrivers_base/Driver.hpp"
 
 #include "Cmd.h"

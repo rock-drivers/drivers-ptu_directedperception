@@ -1,7 +1,7 @@
 rock_library(ptu_directedperception
     SOURCES Driver.cpp Cmd.cpp
     HEADERS Driver.h Cmd.h
-    DEPS_PKGCONFIG base-types iodrivers_base)
+    DEPS_PKGCONFIG base-types iodrivers_base base-logging)
 
 set(module_name ${PROJECT_NAME})
 #target_link_libraries(${PROJECT_NAME} ueye_api)
